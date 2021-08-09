@@ -17,12 +17,14 @@ app.get("/", (req, res) => {
   res.send("Welcome to the memories app api");
 });
 
-const CONNECTION_URL = `"${process.env.CONNECTION_URL}"`;
 const PORT = process.env.PORT || 3001;
 
 mongoose
-  .connect(CONNECTION_URL, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(process.env.CONNECTION_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() =>
     app.listen(PORT, () => console.log(`Server Started on PORT: ${PORT}`))
   )
-  .catch((err) => console.log(err.message));
+  .catch((err) => console.log(err));
