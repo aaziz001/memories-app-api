@@ -40,9 +40,13 @@ export const signup = async (req, res) => {
       password: hashedPassword,
       name: `${firstName} ${lastName}`,
     });
-    const token = jwt.sign({ email: result.email, userId: result._id }, salt, {
-      expiresIn: "1h",
-    });
+    const token = jwt.sign(
+      { email: result.email, userId: result._id },
+      "salt",
+      {
+        expiresIn: "1h",
+      }
+    );
     res.status(200).json({ result, token });
   } catch (error) {
     res.status(500).json({ message: error });
