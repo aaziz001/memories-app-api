@@ -3,7 +3,14 @@ import PostMessage from "../models/postMessage.js";
 
 export const getPosts = async (req, res) => {
   try {
-    const postMessages = await PostMessage.find();
+    const postMessages = await PostMessage.find({ private: false });
+    if (req.userId) {
+      const privatePosts = await PostMessage.find({
+        private: true,
+        creator: req.userId,
+      });
+      postMessages.push(...privatePosts);
+    }
     res.status(200).json(postMessages);
   } catch (error) {
     res.status(404).json({ message: error.message });
