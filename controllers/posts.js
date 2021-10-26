@@ -3,15 +3,29 @@ import PostMessage from "../models/postMessage.js";
 
 export const getPosts = async (req, res) => {
   try {
-    const postMessages = await PostMessage.find({ private: false });
-    if (req.userId) {
-      const privatePosts = await PostMessage.find({
-        private: true,
-        creator: req.userId,
+    const { page } = req.query;
+
+    const LIMIT = 8;
+    const startIndex = (Number(page) - 1) * LIMIT;
+    const total = await PostMessage.countDocuments({});
+
+    const posts = await PostMessage.find({
+      $or: [
+        { private: false },
+        { $and: [{ private: true, creator: req.userId }] },
+      ],
+    })
+      .sort({ _id: -1 })
+      .limit(LIMIT)
+      .skip(startIndex);
+
+    res
+      .status(200)
+      .json({
+        data: posts,
+        currentPage: Number(page),
+        numberOfPages: Math.ceil(total / LIMIT),
       });
-      postMessages.push(...privatePosts);
-    }
-    res.status(200).json(postMessages);
   } catch (error) {
     res.status(404).json({ message: error.message });
   }
@@ -20,9 +34,20 @@ export const getPosts = async (req, res) => {
 export const getPostsBySearch = async (req, res) => {
   const { title, tags } = req.query;
   try {
-    const title = new RegExp(title, "i");
+    const postTitle = new RegExp(title, "i");
+    const userId = req.userId ? req.userId : "null";
     const posts = await PostMessage.find({
-      $or: [{ title }, { tags: { $in: tags.split(",") } }],
+      $and: [
+        {
+          $or: [
+            { private: false },
+            { $and: [{ private: true }, { creator: userId }] },
+          ],
+        },
+        {
+          $or: [{ title: postTitle }, { tags: { $in: tags.split(",") } }],
+        },
+      ],
     });
     res.json(posts);
   } catch (error) {
@@ -65,7 +90,6 @@ export const deletePost = async (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(id))
     return res.status(404).send("No post found with that id");
   await PostMessage.findByIdAndRemove(id);
-  console.log("DELETED");
   res.json({ message: "Post Deleted Successfully" });
 };
 
