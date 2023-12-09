@@ -19,10 +19,10 @@ app.get("/", (req, res) => {
   res.send("Welcome to the memories app api");
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = 5000;
 
 mongoose
-  .connect(process.env.CONNECTION_URL, {
+  .connect("mongodb://mongo:27017", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
